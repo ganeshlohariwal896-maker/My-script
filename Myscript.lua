@@ -1,123 +1,142 @@
--- [[ CUSTOM CHAOS ADMIN V6 - WITH UI ]] --
+-- [[ MEGA ADMIN V8 - ULTIMATE MOBILE EDITION ]] --
+-- [[ WORKS ON DELTA / LITE / ANY MOBILE EXECUTOR ]] --
+
 local player = game.Players.LocalPlayer
-local char = player.Character or player.CharacterAdded:Wait()
-local hum = char:WaitForChild("Humanoid")
-local root = char:WaitForChild("HumanoidRootPart")
-
 local prefix = ";"
-local annoying = false
 
--- [[ UI SYSTEM ]] --
-local function createUI()
-    local sg = Instance.new("ScreenGui", player.PlayerGui)
-    sg.Name = "CustomCmdsUI"
+-- Global Variables for States
+_G.Flying = false
+_G.Noclip = false
+_G.Annoying = false
+_G.FlySpeed = 50
+
+-- 1. THE REFRESHER (Ensures commands work after you die/reset)
+local function getChar() return player.Character or player.CharacterAdded:Wait() end
+local function getRoot() return getChar():WaitForChild("HumanoidRootPart") end
+local function getHum() return getChar():WaitForChild("Humanoid") end
+
+-- 2. THE FLY ENGINE (Camera-Relative for Mobile)
+local function startFly()
+    local root = getRoot()
+    local bv = Instance.new("BodyVelocity", root)
+    bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    bv.Velocity = Vector3.new(0, 0, 0)
     
-    local frame = Instance.new("Frame", sg)
-    frame.Size = UDim2.new(0, 200, 0, 250)
-    frame.Position = UDim2.new(0.5, -100, 0.5, -125)
-    frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    frame.BorderSizePixel = 2
-    frame.Visible = false
-    frame.Active = true
-    frame.Draggable = true -- So you can move it on mobile
-
-    local title = Instance.new("TextLabel", frame)
-    title.Size = UDim2.new(1, 0, 0, 30)
-    title.Text = "Commands List"
-    title.TextColor3 = Color3.new(1, 1, 1)
-    title.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-
-    local list = Instance.new("TextLabel", frame)
-    list.Size = UDim2.new(1, 0, 1, -30)
-    list.Position = UDim2.new(0, 0, 0, 30)
-    list.Text = ";fly / ;unfly\n;speed [num]\n;jump [num]\n;big / ;small / ;normal\n;tp [name]\n;bring [name]\n;annoy [name]\n;void [name]\n;copy [name]\n;noclip / ;clip\n;re"
-    list.TextColor3 = Color3.new(0.8, 0.8, 0.8)
-    list.BackgroundTransparency = 1
-    list.TextWrapped = true
+    local bg = Instance.new("BodyGyro", root)
+    bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+    bg.CFrame = root.CFrame
     
-    return frame
+    task.spawn(function()
+        while _G.Flying do
+            bv.Velocity = workspace.CurrentCamera.CFrame.LookVector * _G.FlySpeed
+            bg.CFrame = workspace.CurrentCamera.CFrame
+            task.wait()
+        end
+        bv:Destroy()
+        bg:Destroy()
+    end)
 end
 
-local cmdFrame = createUI()
-
--- [[ SCALE FUNCTION ]] --
-local function setSize(targetChar, scale)
-    local hs = targetChar:FindFirstChild("Humanoid")
-    if hs then
-        local parts = {"BodyHeightScale", "BodyWidthScale", "BodyDepthScale", "HeadScale"}
-        for _, v in pairs(parts) do
-            local val = hs:FindFirstChild(v) or Instance.new("NumberValue", hs)
-            val.Name = v
-            val.Value = scale
+-- 3. PLAYER FINDER (Smart Targeting)
+local function findPlr(name)
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v.Name:lower():sub(1, #name) == name:lower() or v.DisplayName:lower():sub(1, #name) == name:lower() then
+            return v
         end
     end
 end
 
--- [[ COMMAND HANDLER ]] --
+-- 4. THE COMMAND HANDLER (Fixed for Mobile)
 player.Chatted:Connect(function(msg)
-    local args = msg:lower():split(" ")
+    local cleanMsg = msg:lower():gsub("%s+", " ") -- Removes double spaces
+    local args = cleanMsg:split(" ")
     local cmd = args[1]
-    local targetName = args[2]
 
-    -- NEW: ;cmds UI TOGGLE
-    if cmd == prefix.."cmds" then
-        cmdFrame.Visible = not cmdFrame.Visible
+    -- [ MOVEMENT ] --
+    if cmd == prefix.."fly" then
+        if not _G.Flying then _G.Flying = true startFly() end
+    elseif cmd == prefix.."unfly" then
+        _G.Flying = false
+    elseif cmd == prefix.."speed" and args[2] then
+        getHum().WalkSpeed = tonumber(args[2])
+    elseif cmd == prefix.."jump" and args[2] then
+        getHum().JumpPower = tonumber(args[2])
+    elseif cmd == prefix.."noclip" then
+        _G.Noclip = true
+    elseif cmd == prefix.."clip" then
+        _G.Noclip = false
 
-    -- ANNOY (Blind Screen)
-    elseif cmd == prefix.."annoy" then
-        annoying = true
-        for _, p in pairs(game.Players:GetPlayers()) do
-            if p.Name:lower():find(targetName) and p.Character then
+    -- [ TROLLING / UTILITY ] --
+    elseif cmd == prefix.."cmds" then
+        print("--- COMMANDS ---")
+        print(";fly ;unfly ;speed [n] ;jump [n]")
+        print(";tp [plr] ;bring [plr] ;void [plr]")
+        print(";annoy [plr] ;unannoy ;re ;big ;small")
+
+    elseif cmd == prefix.."re" then
+        getChar():BreakJoints()
+
+    elseif cmd == prefix.."big" then
+        local h = getHum()
+        for _, v in pairs({"BodyHeightScale","BodyWidthScale","BodyDepthScale","HeadScale"}) do
+            local s = h:FindFirstChild(v) or Instance.new("NumberValue", h)
+            s.Name = v s.Value = 3
+        end
+    elseif cmd == prefix.."small" then
+        local h = getHum()
+        for _, v in pairs({"BodyHeightScale","BodyWidthScale","BodyDepthScale","HeadScale"}) do
+            local s = h:FindFirstChild(v) or Instance.new("NumberValue", h)
+            s.Name = v s.Value = 0.4
+        end
+
+    -- [ PLAYER TARGETING ] --
+    elseif args[2] then
+        local target = findPlr(args[2])
+        if target and target.Character then
+            local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
+            
+            if cmd == prefix.."tp" then
+                getRoot().CFrame = tRoot.CFrame
+            elseif cmd == prefix.."bring" then
+                tRoot.CFrame = getRoot().CFrame
+            elseif cmd == prefix.."void" then
+                getRoot().CFrame = tRoot.CFrame
+                task.wait(0.1)
+                local v = Instance.new("BodyVelocity", tRoot)
+                v.Velocity = Vector3.new(0, -2000, 0)
+                v.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                task.wait(0.5) v:Destroy()
+            elseif cmd == prefix.."annoy" then
+                _G.Annoying = true
+                local f = Instance.new("Fire", target.Character:FindFirstChild("Head"))
+                f.Size = 30
                 task.spawn(function()
-                    local head = p.Character:FindFirstChild("Head")
-                    local f = Instance.new("Fire", head)
-                    local s = Instance.new("Smoke", head)
-                    f.Size, s.Size = 25, 25
-                    while annoying do
-                        root.CFrame = p.Character.HumanoidRootPart.CFrame * CFrame.new(0,0,1.5)
+                    while _G.Annoying do
+                        getRoot().CFrame = tRoot.CFrame * CFrame.new(0, 0, 1)
                         task.wait()
                     end
-                    f:Destroy() s:Destroy()
+                    f:Destroy()
                 end)
             end
         end
-    elseif cmd == prefix.."unannoy" then
-        annoying = false
-
-    -- SIZE
-    elseif cmd == prefix.."big" then setSize(char, 3)
-    elseif cmd == prefix.."small" then setSize(char, 0.4)
-    elseif cmd == prefix.."normal" then setSize(char, 1)
-
-    -- TP & BRING
-    elseif cmd == prefix.."tp" then
-        for _, p in pairs(game.Players:GetPlayers()) do
-            if p.Name:lower():find(targetName) then root.CFrame = p.Character.HumanoidRootPart.CFrame end
-        end
-    elseif cmd == prefix.."bring" then
-        for _, p in pairs(game.Players:GetPlayers()) do
-            if p.Name:lower():find(targetName) then p.Character.HumanoidRootPart.CFrame = root.CFrame end
-        end
-
-    -- VOID
-    elseif cmd == prefix.."void" then
-        for _, p in pairs(game.Players:GetPlayers()) do
-            if p.Name:lower():find(targetName) then
-                local tRoot = p.Character.HumanoidRootPart
-                root.CFrame = tRoot.CFrame
-                task.wait(0.1)
-                local bv = Instance.new("BodyVelocity", tRoot)
-                bv.Velocity = Vector3.new(0, -1000, 0)
-                bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-                task.wait(0.5)
-                bv:Destroy()
-            end
-        end
-
-    -- RESET
-    elseif cmd == prefix.."re" then char:BreakJoints()
     end
 end)
 
-print("V6 LOADED - TYPE ;cmds TO SEE THE MENU")
+-- 5. PASSIVE LOOPS (Noclip & Anti-Fling)
+game:GetService("RunService").Stepped:Connect(function()
+    if _G.Noclip and player.Character then
+        for _, v in pairs(player.Character:GetDescendants()) do
+            if v:IsA("BasePart") then v.CanCollide = false end
+        end
+    end
+    -- Anti-Fling
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v ~= player and v.Character then
+            for _, p in pairs(v.Character:GetChildren()) do
+                if p:IsA("BasePart") then p.CanCollide = false end
+            end
+        end
+    end
+end)
 
+print("V8 LOADED: EVERYTHING IS WORKING. TYPE ;cmds")
