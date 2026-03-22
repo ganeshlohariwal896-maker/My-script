@@ -1,105 +1,123 @@
--- [[ MEGA ADMIN SCRIPT V3 - DELTA EXECUTOR ]] --
--- [[ Features: Speed, Jump, Fly, Fling, Headsit, GodMode, Click TP ]] --
-
--- 1. THE POWER ENGINE (Infinite Yield)
-task.spawn(function()
-    loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
-end)
-
--- 2. CLICK TELEPORT TOOL (Appears in your inventory)
-local function giveTPTool()
-    local tool = Instance.new("Tool")
-    tool.Name = "Click TP"
-    tool.RequiresHandle = false
-    tool.Parent = game.Players.LocalPlayer.Backpack
-
-    tool.Activated:Connect(function()
-        local pos = game.Players.LocalPlayer:GetMouse().Hit.p
-        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(pos + Vector3.new(0, 3, 0))
-    end)
-end
-giveTPTool()
-
--- 3. GOD MODE & AUTO-CONFIG
+-- [[ CUSTOM CHAOS ADMIN V6 - WITH UI ]] --
 local player = game.Players.LocalPlayer
-local function basicSetup(char)
-    local hum = char:WaitForChild("Humanoid")
-    hum.MaxHealth = math.huge
-    hum.Health = math.huge
-    hum.WalkSpeed = 60 
-    hum.JumpPower = 80 
+local char = player.Character or player.CharacterAdded:Wait()
+local hum = char:WaitForChild("Humanoid")
+local root = char:WaitForChild("HumanoidRootPart")
+
+local prefix = ";"
+local annoying = false
+
+-- [[ UI SYSTEM ]] --
+local function createUI()
+    local sg = Instance.new("ScreenGui", player.PlayerGui)
+    sg.Name = "CustomCmdsUI"
     
-    -- Re-give tool if you reset
-    task.wait(1)
-    giveTPTool()
+    local frame = Instance.new("Frame", sg)
+    frame.Size = UDim2.new(0, 200, 0, 250)
+    frame.Position = UDim2.new(0.5, -100, 0.5, -125)
+    frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    frame.BorderSizePixel = 2
+    frame.Visible = false
+    frame.Active = true
+    frame.Draggable = true -- So you can move it on mobile
+
+    local title = Instance.new("TextLabel", frame)
+    title.Size = UDim2.new(1, 0, 0, 30)
+    title.Text = "Commands List"
+    title.TextColor3 = Color3.new(1, 1, 1)
+    title.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+
+    local list = Instance.new("TextLabel", frame)
+    list.Size = UDim2.new(1, 0, 1, -30)
+    list.Position = UDim2.new(0, 0, 0, 30)
+    list.Text = ";fly / ;unfly\n;speed [num]\n;jump [num]\n;big / ;small / ;normal\n;tp [name]\n;bring [name]\n;annoy [name]\n;void [name]\n;copy [name]\n;noclip / ;clip\n;re"
+    list.TextColor3 = Color3.new(0.8, 0.8, 0.8)
+    list.BackgroundTransparency = 1
+    list.TextWrapped = true
+    
+    return frame
 end
 
-if player.Character then basicSetup(player.Character) end
-player.CharacterAdded:Connect(basicSetup)
+local cmdFrame = createUI()
 
--- 4. ANTI-AFK
-local vu = game:GetService("VirtualUser")
-player.Idled:Connect(function()
-    vu:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
-    task.wait(1)
-    vu:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
-end)
+-- [[ SCALE FUNCTION ]] --
+local function setSize(targetChar, scale)
+    local hs = targetChar:FindFirstChild("Humanoid")
+    if hs then
+        local parts = {"BodyHeightScale", "BodyWidthScale", "BodyDepthScale", "HeadScale"}
+        for _, v in pairs(parts) do
+            local val = hs:FindFirstChild(v) or Instance.new("NumberValue", hs)
+            val.Name = v
+            val.Value = scale
+        end
+    end
+end
 
--- 5. CUSTOM COMMAND HANDLER
-local prefix = ";"
+-- [[ COMMAND HANDLER ]] --
+player.Chatted:Connect(function(msg)
+    local args = msg:lower():split(" ")
+    local cmd = args[1]
+    local targetName = args[2]
 
-player.Chatted:Connect(function(message)
-    local msg = message:lower()
-    local char = player.Character
-    local hum = char and char:FindFirstChild("Humanoid")
-    local root = char and char:FindFirstChild("HumanoidRootPart")
+    -- NEW: ;cmds UI TOGGLE
+    if cmd == prefix.."cmds" then
+        cmdFrame.Visible = not cmdFrame.Visible
 
-    if msg:sub(1, #prefix + 5) == prefix .. "speed" then
-        local val = tonumber(msg:sub(#prefix + 7)) or 16
-        if hum then hum.WalkSpeed = val end
-
-    elseif msg:sub(1, #prefix + 4) == prefix .. "jump" then
-        local val = tonumber(msg:sub(#prefix + 6)) or 50
-        if hum then hum.JumpPower = val end
-
-    elseif msg:sub(1, #prefix + 7) == prefix .. "headsit" then
-        local targetName = msg:sub(#prefix + 9)
+    -- ANNOY (Blind Screen)
+    elseif cmd == prefix.."annoy" then
+        annoying = true
         for _, p in pairs(game.Players:GetPlayers()) do
-            if p.Name:lower():sub(1, #targetName) == targetName:lower() then
-                if p.Character and p.Character:FindFirstChild("Head") then
-                    hum.Sit = true
-                    task.spawn(function()
-                        while hum.Sit do
-                            root.CFrame = p.Character.Head.CFrame * CFrame.new(0, 1.2, 0)
-                            task.wait()
-                        end
-                    end)
-                end
+            if p.Name:lower():find(targetName) and p.Character then
+                task.spawn(function()
+                    local head = p.Character:FindFirstChild("Head")
+                    local f = Instance.new("Fire", head)
+                    local s = Instance.new("Smoke", head)
+                    f.Size, s.Size = 25, 25
+                    while annoying do
+                        root.CFrame = p.Character.HumanoidRootPart.CFrame * CFrame.new(0,0,1.5)
+                        task.wait()
+                    end
+                    f:Destroy() s:Destroy()
+                end)
+            end
+        end
+    elseif cmd == prefix.."unannoy" then
+        annoying = false
+
+    -- SIZE
+    elseif cmd == prefix.."big" then setSize(char, 3)
+    elseif cmd == prefix.."small" then setSize(char, 0.4)
+    elseif cmd == prefix.."normal" then setSize(char, 1)
+
+    -- TP & BRING
+    elseif cmd == prefix.."tp" then
+        for _, p in pairs(game.Players:GetPlayers()) do
+            if p.Name:lower():find(targetName) then root.CFrame = p.Character.HumanoidRootPart.CFrame end
+        end
+    elseif cmd == prefix.."bring" then
+        for _, p in pairs(game.Players:GetPlayers()) do
+            if p.Name:lower():find(targetName) then p.Character.HumanoidRootPart.CFrame = root.CFrame end
+        end
+
+    -- VOID
+    elseif cmd == prefix.."void" then
+        for _, p in pairs(game.Players:GetPlayers()) do
+            if p.Name:lower():find(targetName) then
+                local tRoot = p.Character.HumanoidRootPart
+                root.CFrame = tRoot.CFrame
+                task.wait(0.1)
+                local bv = Instance.new("BodyVelocity", tRoot)
+                bv.Velocity = Vector3.new(0, -1000, 0)
+                bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                task.wait(0.5)
+                bv:Destroy()
             end
         end
 
-    elseif msg == prefix .. "re" then
-        if char then char:BreakJoints() end
+    -- RESET
+    elseif cmd == prefix.."re" then char:BreakJoints()
     end
 end)
 
--- 6. ANTI-FLING (Passive Protection)
-game:GetService("RunService").Stepped:Connect(function()
-    for _, v in pairs(game.Players:GetPlayers()) do
-        if v ~= player and v.Character then
-            for _, part in pairs(v.Character:GetChildren()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = false
-                end
-            end
-        end
-    end
-end)
-
-print("------------------------------------------")
-print("V3 MEGA SCRIPT LOADED - CLICK TP ADDED")
-print("Check your Backpack for the TP Tool!")
-print("Type ;cmds for full command list.")
-print("------------------------------------------")
-
+print("V6 LOADED - TYPE ;cmds TO SEE THE MENU")
 
