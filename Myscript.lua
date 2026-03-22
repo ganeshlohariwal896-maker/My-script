@@ -1,45 +1,49 @@
--- [[ VORTEX HUB V41 - FULL LOGIC RESTORED ]] --
+-- [[ VORTEX V41 - THE GOD-MODE VOID ]] --
 local player = game.Players.LocalPlayer
 local pgui = player:WaitForChild("PlayerGui")
 local runService = game:GetService("RunService")
 local prefix = "-"
 
--- 1. UI SETUP
-if pgui:FindFirstChild("VortexHubV41") then pgui.VortexHubV41:Destroy() end
-local sg = Instance.new("ScreenGui", pgui); sg.Name = "VortexHubV41"
+-- 1. UI SETUP (STAYING CLEAN & NEON)
+if pgui:FindFirstChild("VortexV44") then pgui.VortexV44:Destroy() end
+local sg = Instance.new("ScreenGui", pgui); sg.Name = "VortexV44"
 local Main = Instance.new("Frame", sg)
-Main.Size = UDim2.new(0, 250, 0, 380); Main.Position = UDim2.new(0.5, -125, 0.2, 0)
-Main.BackgroundColor3 = Color3.fromRGB(10, 10, 10); Main.Active = true; Main.Draggable = true
-Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 12)
-Instance.new("UIStroke", Main).Color = Color3.fromRGB(255, 0, 50)
+Main.Size = UDim2.new(0, 260, 0, 420); Main.Position = UDim2.new(0.5, -130, 0.15, 0)
+Main.BackgroundColor3 = Color3.fromRGB(5, 5, 5); Main.Active = true; Main.Draggable = true
+Instance.new("UIStroke", Main).Color = Color3.fromRGB(255, 0, 0)
+Instance.new("UICorner", Main)
 
 local Scroll = Instance.new("ScrollingFrame", Main)
-Scroll.Size = UDim2.new(1, -20, 1, -65); Scroll.Position = UDim2.new(0, 10, 0, 55)
-Scroll.BackgroundTransparency = 1; Scroll.CanvasSize = UDim2.new(0, 0, 2.5, 0)
+Scroll.Size = UDim2.new(1, -20, 1, -60); Scroll.Position = UDim2.new(0, 10, 0, 50)
+Scroll.BackgroundTransparency = 1; Scroll.CanvasSize = UDim2.new(0, 0, 3.5, 0)
 
 local List = Instance.new("TextLabel", Scroll)
-List.Size = UDim2.new(1, 0, 1, 0); List.BackgroundTransparency = 1; List.TextColor3 = Color3.fromRGB(200, 200, 200)
+List.Size = UDim2.new(1, 0, 1, 0); List.BackgroundTransparency = 1; List.TextColor3 = Color3.new(1, 1, 1)
 List.TextXAlignment = "Left"; List.TextYAlignment = "Top"
 List.Text = [[
---- [ ☣️ GLOBAL ] ---
--blindall / -unblind
--flingall / -unfling
--spamall [msg] / -unspam
--earthquake
+--- [ 🔥 FLAMES HUB ELITE ] ---
+-annoy [name] (GIGA FIRE 150)
+-headsit [name] (No-Clip Sit)
+-voidall (THEY Fall, YOU Walk)
+-lagserver (Giga Fire Lag)
+-unlag / -unvoid
 
---- [ 💀 TARGET ] ---
--annoy [name] (FIRE)
+--- [ ☣️ GLOBAL RAGE ] ---
+-feverall / -blindall / -whiteout
+-earthquake / -spamall [msg]
+-flingall / -unfling
+
+--- [ 💀 TARGET TROLLS ] ---
 -loopkill [name] / -unloopkill
--stalk [name] / -unstalk
--freeze [name] / -unfreeze
+-stalk [name] / -freeze [name]
 -hijack [name] (Begging)
 
 --- [ 🎭 IDENTITY ] ---
--mimic [name] [msg]
--copy [name] / -fakeban [name]
+-mimic [name] [msg] / -copy [name]
+-speed [n] / -fly / -esp
 ]]
 
---- 2. THE COMPLETE ENGINE ---
+--- 2. THE GOD-MODE ENGINE ---
 _G.Speed = 16
 
 local function runCommand(msg)
@@ -49,68 +53,73 @@ local function runCommand(msg)
     local root = char and char:FindFirstChild("HumanoidRootPart")
     if not root then return end
 
-    -- GLOBAL LOGIC
-    if cmd == prefix.."blindall" then
-        for _, v in pairs(game.Players:GetPlayers()) do
-            if v ~= player then
-                local s = Instance.new("ScreenGui", v:WaitForChild("PlayerGui")); s.Name = "Blind"
-                local f = Instance.new("Frame", s); f.Size = UDim2.new(1,0,1,0); f.BackgroundColor3 = Color3.new(0,0,0)
+    -- FIXED VOID ALL (YOU STAY, THEY FALL)
+    if cmd == prefix.."voidall" then
+        -- Create a private floor for you
+        local Plate = Instance.new("Part", workspace)
+        Plate.Name = "GodFloor"; Plate.Size = Vector3.new(2048, 2, 2048)
+        Plate.CFrame = root.CFrame * CFrame.new(0, -4, 0)
+        Plate.Anchored = true; Plate.Transparency = 0.8; Plate.Color = Color3.new(1,0,0)
+        
+        -- Delete the real map parts
+        for _, v in pairs(workspace:GetDescendants()) do
+            if v:IsA("BasePart") and v.Name ~= "GodFloor" and not v:IsDescendantOf(game.Players) then
+                v.CanCollide = false
+                v.Transparency = 0.5
             end
         end
-    elseif cmd == prefix.."unblind" then
-        for _, v in pairs(game.Players:GetPlayers()) do
-            local b = v.PlayerGui:FindFirstChild("Blind")
-            if b then b:Destroy() end
+    elseif cmd == prefix.."unvoid" then
+        if workspace:FindFirstChild("GodFloor") then workspace.GodFloor:Destroy() end
+        for _, v in pairs(workspace:GetDescendants()) do
+            if v:IsA("BasePart") then v.CanCollide = true; v.Transparency = 0 end
         end
-    elseif cmd == prefix.."flingall" then
-        _G.Flinging = true
-        task.spawn(function() while _G.Flinging do root.Velocity = Vector3.new(99999,0,99999); task.wait() end end)
-    elseif cmd == prefix.."unfling" then _G.Flinging = false; root.Velocity = Vector3.new(0,0,0)
-    elseif cmd == prefix.."earthquake" then
-        _G.Quake = true
-        task.spawn(function() while _G.Quake do workspace.CurrentCamera.CFrame = workspace.CurrentCamera.CFrame * CFrame.new(math.random(-1,1),0,math.random(-1,1)) task.wait(0.05) end end)
-    elseif cmd == prefix.."unquake" then _G.Quake = false
-    elseif cmd == prefix.."spamall" then
-        _G.Spam = true; local sMsg = msg:sub(#cmd + 2)
-        task.spawn(function() while _G.Spam do game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer(sMsg, "All") task.wait(0.7) end end)
-    elseif cmd == prefix.."unspam" then _G.Spam = false
 
-    -- TARGET LOGIC
+    -- SERVER LAG (800 FIRE OBJECTS)
+    elseif cmd == prefix.."lagserver" then
+        _G.Lag = true
+        task.spawn(function()
+            local f = Instance.new("Folder", workspace); f.Name = "Chaos"
+            for i = 1, 800 do
+                if not _G.Lag then break end
+                local p = Instance.new("Part", f)
+                p.Anchored = true; p.Transparency = 1; p.Position = root.Position + Vector3.new(math.random(-100,100), 20, math.random(-100,100))
+                Instance.new("Fire", p).Size = 100
+                if i % 50 == 0 then task.wait() end
+            end
+        end)
+
+    -- TARGET SEARCH
     elseif args[2] then
         local t = nil
         for _, v in pairs(game.Players:GetPlayers()) do
             if v.Name:lower():find(args[2]) or v.DisplayName:lower():find(args[2]) then t = v break end
         end
         if t and t.Character then
-            if cmd == prefix.."annoy" then
-                Instance.new("Fire", t.Character.Head).Size = 150
-            elseif cmd == prefix.."hijack" then
-                local ph = {"MY PHONE IS LAGGING!", "ADMIN HELP!", "PLEASE STOP!", "I'M HACKED!"}
-                game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer(t.Name..": "..ph[math.random(1,#ph)], "All")
-            elseif cmd == prefix.."stalk" then
-                _G.Stalking = true
-                task.spawn(function() while _G.Stalking do root.CFrame = t.Character.HumanoidRootPart.CFrame * CFrame.new(0,0,-2.5) * CFrame.Angles(0,math.pi,0) task.wait() end end)
-            elseif cmd == prefix.."loopkill" then
-                _G.LK = true
-                task.spawn(function() while _G.LK do t.Character.Humanoid.Health = 0 task.wait(0.5) end end)
-            elseif cmd == prefix.."unloopkill" then _G.LK = false
-            elseif cmd == prefix.."freeze" then t.Character.HumanoidRootPart.Anchored = true
-            elseif cmd == prefix.."unfreeze" then t.Character.HumanoidRootPart.Anchored = false
-            elseif cmd == prefix.."mimic" then
-                local say = msg:sub(#cmd + #args[2] + 3)
-                game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer(t.Name..": "..say, "All")
-            elseif cmd == prefix.."copy" then
-                for _, v in pairs(char:GetChildren()) do if v:IsA("Accessory") or v:IsA("Shirt") or v:IsA("Pants") then v:Destroy() end end
-                for _, v in pairs(t.Character:GetChildren()) do if v:IsA("Accessory") or v:IsA("Shirt") or v:IsA("Pants") then v:Clone().Parent = char end end
+            -- FIXED HEADSIT
+            if cmd == prefix.."headsit" then
+                _G.Sitting = true
+                char.Humanoid.Sit = true
+                task.spawn(function()
+                    while _G.Sitting and t.Character do
+                        root.CFrame = t.Character.Head.CFrame * CFrame.new(0, 0.5, 0)
+                        task.wait()
+                    end
+                end)
+            elseif cmd == prefix.."unheadsit" then _G.Sitting = false; char.Humanoid.Sit = false
+
+            -- GIGA ANNOY (VISIBLE FIRE 150)
+            elseif cmd == prefix.."annoy" then
+                local fire = Instance.new("Fire", t.Character.Head); fire.Size = 150; fire.Heat = 150
+                local smoke = Instance.new("Smoke", t.Character.Head); smoke.Size = 100
             end
         end
     end
 end
 
--- 3. EXECUTION
+-- 3. LOOPS
 player.Chatted:Connect(runCommand)
 runService.Heartbeat:Connect(function()
     pcall(function() player.Character.Humanoid.WalkSpeed = _G.Speed end)
 end)
 
-game:GetService("StarterGui"):SetCore("SendNotification", {Title = "VORTEX V41 READY"; Text = "All Logic Restored!"; Duration = 5;})
+game:GetService("StarterGui"):SetCore("SendNotification", {Title = "VORTEX V44 READY"; Text = "Void Protection Active."; Duration = 5;})
