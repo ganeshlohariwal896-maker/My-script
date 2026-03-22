@@ -1,77 +1,105 @@
 local player = game.Players.LocalPlayer
 local pgui = player:WaitForChild("PlayerGui")
+local runService = game:GetService("RunService")
 
--- 1. DELETE OLD UI
-if pgui:FindFirstChild("MobileForceHub") then pgui.MobileForceHub:Destroy() end
+-- CLEAN UP OLD VERSION
+if pgui:FindFirstChild("BrainrotMaster") then pgui.BrainrotMaster:Destroy() end
 
--- 2. CREATE THE UI
+-- UI SETUP
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "MobileForceHub"
+ScreenGui.Name = "BrainrotMaster"
 ScreenGui.Parent = pgui
 
 local Main = Instance.new("Frame")
-Main.Size = UDim2.new(0, 220, 0, 200)
-Main.Position = UDim2.new(0.5, -110, 0.4, 0)
-Main.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-Main.BorderSizePixel = 2
+Main.Size = UDim2.new(0, 250, 0, 300)
+Main.Position = UDim2.new(0.5, -125, 0.2, 0)
+Main.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 Main.Active = true
-Main.Draggable = true 
+Main.Draggable = true
 Main.Parent = ScreenGui
 
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 30)
-Title.Text = "FORCE ADJUSTER"
-Title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-Title.TextColor3 = Color3.new(1, 1, 1)
+Title.Size = UDim2.new(1, 0, 0, 35)
+Title.Text = "BRAINROT MASTER HUB"
+Title.BackgroundColor3 = Color3.fromRGB(100, 0, 200)
+Title.TextColor3 = Color3.new(1,1,1)
 Title.Parent = Main
 
--- INPUT BOXES
-local SpeedBox = Instance.new("TextBox")
-SpeedBox.Size = UDim2.new(0, 200, 0, 40)
-SpeedBox.Position = UDim2.new(0, 10, 0, 40)
-SpeedBox.PlaceholderText = "Set Speed (Try 100)"
-SpeedBox.Text = "16"
-SpeedBox.Parent = Main
+-- TOGGLES & INPUTS
+local SpeedVal = 16
+local JumpVal = 50
+local AutoFarmEnabled = false
+local AutoCollectEnabled = false
 
-local JumpBox = Instance.new("TextBox")
-JumpBox.Size = UDim2.new(0, 200, 0, 40)
-JumpBox.Position = UDim2.new(0, 10, 0, 90)
-JumpBox.PlaceholderText = "Set Jump (Try 150)"
-JumpBox.Text = "50"
-JumpBox.Parent = Main
-
-local Apply = Instance.new("TextButton")
-Apply.Size = UDim2.new(0, 200, 0, 50)
-Apply.Position = UDim2.new(0, 10, 0, 140)
-Apply.Text = "ACTIVATE FORCE"
-Apply.BackgroundColor3 = Color3.fromRGB(0, 180, 0)
-Apply.TextColor3 = Color3.new(1, 1, 1)
-Apply.Parent = Main
-
--- 3. THE FORCE LOOP (This is what makes it work!)
-local targetSpeed = 16
-local targetJump = 50
-
-Apply.MouseButton1Click:Connect(function()
-    targetSpeed = tonumber(SpeedBox.Text) or 16
-    targetJump = tonumber(JumpBox.Text) or 50
+local function createToggle(text, pos, callback)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 230, 0, 35)
+    btn.Position = UDim2.new(0, 10, 0, pos)
+    btn.Text = text.." [OFF]"
+    btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.Parent = Main
     
-    game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = "FORCE ENABLED";
-        Text = "Speed: "..targetSpeed.." | Jump: "..targetJump;
-        Duration = 3;
-    })
+    local state = false
+    btn.MouseButton1Click:Connect(function()
+        state = not state
+        btn.Text = text..(state and " [ON]" or " [OFF]")
+        btn.BackgroundColor3 = state and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(50, 50, 50)
+        callback(state)
+    end)
+end
+
+-- SPEED & JUMP INPUTS
+local SBox = Instance.new("TextBox")
+SBox.Size = UDim2.new(0, 110, 0, 30)
+SBox.Position = UDim2.new(0, 10, 0, 45)
+SBox.PlaceholderText = "Speed"
+SBox.Parent = Main
+
+local JBox = Instance.new("TextBox")
+JBox.Size = UDim2.new(0, 110, 0, 30)
+JBox.Position = UDim2.new(0, 130, 0, 45)
+JBox.PlaceholderText = "Jump"
+JBox.Parent = Main
+
+SBox.FocusLost:Connect(function() SpeedVal = tonumber(SBox.Text) or 16 end)
+JBox.FocusLost:Connect(function() JumpVal = tonumber(JBox.Text) or 50 end)
+
+-- FEATURES
+createToggle("Auto Farm Brainrots", 85, function(v) AutoFarmEnabled = v end)
+createToggle("Auto Collect Money", 130, function(v) AutoCollectEnabled = v end)
+createToggle("Anti-Shrink Physics", 175, function(v) 
+    _G.AntiShrink = v 
 end)
 
--- This runs every single frame to beat the game's anti-reset
-game:GetService("RunService").RenderStepped:Connect(function()
+-- LOGIC LOOPS
+runService.Heartbeat:Connect(function()
     local char = player.Character
     if char and char:FindFirstChild("Humanoid") then
-        local hum = char.Humanoid
-        hum.WalkSpeed = targetSpeed
-        -- Set both Jump systems to be safe
-        hum.JumpPower = targetJump
-        hum.JumpHeight = targetJump / 2 -- Formula for JumpHeight games
-        hum.UseJumpPower = true
+        -- Force Speed/Jump
+        char.Humanoid.WalkSpeed = SpeedVal
+        char.Humanoid.JumpPower = JumpVal
+        char.Humanoid.UseJumpPower = true
+        
+        -- AUTO COLLECT MONEY
+        if AutoCollectEnabled then
+            for _, v in pairs(workspace:GetChildren()) do
+                if v.Name == "Coin" or v.Name == "Cash" or v:FindFirstChild("TouchInterest") then
+                    firetouchinterest(char.PrimaryPart, v, 0)
+                end
+            end
+        end
+        
+        -- AUTO FARM BRAINROTS
+        if AutoFarmEnabled then
+            for _, v in pairs(workspace:GetDescendants()) do
+                if v:IsA("Model") and (v.Name:find("Brainrot") or v.Name:find("Secret")) then
+                    char:MoveTo(v.PrimaryPart.Position)
+                    task.wait(0.5)
+                    break
+                end
+            end
+        end
     end
 end)
+
