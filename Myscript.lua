@@ -1,105 +1,105 @@
-local player = game.Players.LocalPlayer
-local pgui = player:WaitForChild("PlayerGui")
-local runService = game:GetService("RunService")
+-- [[ MEGA ADMIN SCRIPT V3 - DELTA EXECUTOR ]] --
+-- [[ Features: Speed, Jump, Fly, Fling, Headsit, GodMode, Click TP ]] --
 
--- CLEAN UP OLD VERSION
-if pgui:FindFirstChild("BrainrotMaster") then pgui.BrainrotMaster:Destroy() end
-
--- UI SETUP
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "BrainrotMaster"
-ScreenGui.Parent = pgui
-
-local Main = Instance.new("Frame")
-Main.Size = UDim2.new(0, 250, 0, 300)
-Main.Position = UDim2.new(0.5, -125, 0.2, 0)
-Main.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-Main.Active = true
-Main.Draggable = true
-Main.Parent = ScreenGui
-
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 35)
-Title.Text = "BRAINROT MASTER HUB"
-Title.BackgroundColor3 = Color3.fromRGB(100, 0, 200)
-Title.TextColor3 = Color3.new(1,1,1)
-Title.Parent = Main
-
--- TOGGLES & INPUTS
-local SpeedVal = 16
-local JumpVal = 50
-local AutoFarmEnabled = false
-local AutoCollectEnabled = false
-
-local function createToggle(text, pos, callback)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 230, 0, 35)
-    btn.Position = UDim2.new(0, 10, 0, pos)
-    btn.Text = text.." [OFF]"
-    btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    btn.TextColor3 = Color3.new(1,1,1)
-    btn.Parent = Main
-    
-    local state = false
-    btn.MouseButton1Click:Connect(function()
-        state = not state
-        btn.Text = text..(state and " [ON]" or " [OFF]")
-        btn.BackgroundColor3 = state and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(50, 50, 50)
-        callback(state)
-    end)
-end
-
--- SPEED & JUMP INPUTS
-local SBox = Instance.new("TextBox")
-SBox.Size = UDim2.new(0, 110, 0, 30)
-SBox.Position = UDim2.new(0, 10, 0, 45)
-SBox.PlaceholderText = "Speed"
-SBox.Parent = Main
-
-local JBox = Instance.new("TextBox")
-JBox.Size = UDim2.new(0, 110, 0, 30)
-JBox.Position = UDim2.new(0, 130, 0, 45)
-JBox.PlaceholderText = "Jump"
-JBox.Parent = Main
-
-SBox.FocusLost:Connect(function() SpeedVal = tonumber(SBox.Text) or 16 end)
-JBox.FocusLost:Connect(function() JumpVal = tonumber(JBox.Text) or 50 end)
-
--- FEATURES
-createToggle("Auto Farm Brainrots", 85, function(v) AutoFarmEnabled = v end)
-createToggle("Auto Collect Money", 130, function(v) AutoCollectEnabled = v end)
-createToggle("Anti-Shrink Physics", 175, function(v) 
-    _G.AntiShrink = v 
+-- 1. THE POWER ENGINE (Infinite Yield)
+task.spawn(function()
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
 end)
 
--- LOGIC LOOPS
-runService.Heartbeat:Connect(function()
+-- 2. CLICK TELEPORT TOOL (Appears in your inventory)
+local function giveTPTool()
+    local tool = Instance.new("Tool")
+    tool.Name = "Click TP"
+    tool.RequiresHandle = false
+    tool.Parent = game.Players.LocalPlayer.Backpack
+
+    tool.Activated:Connect(function()
+        local pos = game.Players.LocalPlayer:GetMouse().Hit.p
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(pos + Vector3.new(0, 3, 0))
+    end)
+end
+giveTPTool()
+
+-- 3. GOD MODE & AUTO-CONFIG
+local player = game.Players.LocalPlayer
+local function basicSetup(char)
+    local hum = char:WaitForChild("Humanoid")
+    hum.MaxHealth = math.huge
+    hum.Health = math.huge
+    hum.WalkSpeed = 60 
+    hum.JumpPower = 80 
+    
+    -- Re-give tool if you reset
+    task.wait(1)
+    giveTPTool()
+end
+
+if player.Character then basicSetup(player.Character) end
+player.CharacterAdded:Connect(basicSetup)
+
+-- 4. ANTI-AFK
+local vu = game:GetService("VirtualUser")
+player.Idled:Connect(function()
+    vu:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+    task.wait(1)
+    vu:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+end)
+
+-- 5. CUSTOM COMMAND HANDLER
+local prefix = ";"
+
+player.Chatted:Connect(function(message)
+    local msg = message:lower()
     local char = player.Character
-    if char and char:FindFirstChild("Humanoid") then
-        -- Force Speed/Jump
-        char.Humanoid.WalkSpeed = SpeedVal
-        char.Humanoid.JumpPower = JumpVal
-        char.Humanoid.UseJumpPower = true
-        
-        -- AUTO COLLECT MONEY
-        if AutoCollectEnabled then
-            for _, v in pairs(workspace:GetChildren()) do
-                if v.Name == "Coin" or v.Name == "Cash" or v:FindFirstChild("TouchInterest") then
-                    firetouchinterest(char.PrimaryPart, v, 0)
+    local hum = char and char:FindFirstChild("Humanoid")
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+
+    if msg:sub(1, #prefix + 5) == prefix .. "speed" then
+        local val = tonumber(msg:sub(#prefix + 7)) or 16
+        if hum then hum.WalkSpeed = val end
+
+    elseif msg:sub(1, #prefix + 4) == prefix .. "jump" then
+        local val = tonumber(msg:sub(#prefix + 6)) or 50
+        if hum then hum.JumpPower = val end
+
+    elseif msg:sub(1, #prefix + 7) == prefix .. "headsit" then
+        local targetName = msg:sub(#prefix + 9)
+        for _, p in pairs(game.Players:GetPlayers()) do
+            if p.Name:lower():sub(1, #targetName) == targetName:lower() then
+                if p.Character and p.Character:FindFirstChild("Head") then
+                    hum.Sit = true
+                    task.spawn(function()
+                        while hum.Sit do
+                            root.CFrame = p.Character.Head.CFrame * CFrame.new(0, 1.2, 0)
+                            task.wait()
+                        end
+                    end)
                 end
             end
         end
-        
-        -- AUTO FARM BRAINROTS
-        if AutoFarmEnabled then
-            for _, v in pairs(workspace:GetDescendants()) do
-                if v:IsA("Model") and (v.Name:find("Brainrot") or v.Name:find("Secret")) then
-                    char:MoveTo(v.PrimaryPart.Position)
-                    task.wait(0.5)
-                    break
+
+    elseif msg == prefix .. "re" then
+        if char then char:BreakJoints() end
+    end
+end)
+
+-- 6. ANTI-FLING (Passive Protection)
+game:GetService("RunService").Stepped:Connect(function()
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v ~= player and v.Character then
+            for _, part in pairs(v.Character:GetChildren()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
                 end
             end
         end
     end
 end)
+
+print("------------------------------------------")
+print("V3 MEGA SCRIPT LOADED - CLICK TP ADDED")
+print("Check your Backpack for the TP Tool!")
+print("Type ;cmds for full command list.")
+print("------------------------------------------")
+
 
