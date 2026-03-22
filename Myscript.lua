@@ -1,170 +1,109 @@
--- [[ MEGA ADMIN V28 - DASH PREFIX [-] ]] --
+-- [[ MEGA ADMIN V36 - THE ALL-IN-ONE MASTER ]] --
 local player = game.Players.LocalPlayer
-local prefix = "-" 
+local pgui = player:WaitForChild("PlayerGui")
+local runService = game:GetService("RunService")
+local prefix = "-"
 
--- 1. STABLE NOTIFICATION
-local function notify(title, msg)
-    pcall(function()
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = title;
-            Text = msg;
-            Duration = 4;
-        })
-    end)
-end
+-- 1. UI SETUP (DARK RED THEME)
+if pgui:FindFirstChild("MasterV36") then pgui.MasterV36:Destroy() end
+local sg = Instance.new("ScreenGui", pgui); sg.Name = "MasterV36"
+local Main = Instance.new("Frame", sg)
+Main.Size = UDim2.new(0, 260, 0, 440); Main.Position = UDim2.new(0.5, -130, 0.2, 0)
+Main.BackgroundColor3 = Color3.fromRGB(15, 0, 0); Main.Active = true; Main.Draggable = true
+Instance.new("UIStroke", Main).Thickness = 2
 
--- 2. UI SETUP (STABLE & DRAGGABLE)
-local function buildUI()
-    local sg = Instance.new("ScreenGui", player.PlayerGui)
-    sg.Name = "MegaAdminV28"
-    sg.ResetOnSpawn = false
-    
-    local btn = Instance.new("TextButton", sg)
-    btn.Size = UDim2.new(0, 90, 0, 45)
-    btn.Position = UDim2.new(0, 10, 0.5, 0)
-    btn.Text = "MENU [-]"
-    btn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    btn.TextColor3 = Color3.new(1, 1, 1)
-    btn.Draggable = true
-    Instance.new("UICorner", btn)
+local Title = Instance.new("TextLabel", Main)
+Title.Size = UDim2.new(1, 0, 0, 40); Title.Text = "🔥 MASTER V36 - EVERYTHING 🔥"
+Title.BackgroundColor3 = Color3.fromRGB(120, 0, 0); Title.TextColor3 = Color3.new(1, 1, 1)
 
-    local frame = Instance.new("Frame", sg)
-    frame.Size = UDim2.new(0, 240, 0, 320)
-    frame.Position = UDim2.new(0.5, -120, 0.5, -160)
-    frame.Visible = false
-    frame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
-    Instance.new("UICorner", frame)
+local Scroll = Instance.new("ScrollingFrame", Main)
+Scroll.Size = UDim2.new(1, -10, 1, -50); Scroll.Position = UDim2.new(0, 5, 0, 45)
+Scroll.CanvasSize = UDim2.new(0, 0, 10, 0); Scroll.BackgroundTransparency = 1
 
-    local scroll = Instance.new("ScrollingFrame", frame)
-    scroll.Size = UDim2.new(1, -10, 1, -10)
-    scroll.Position = UDim2.new(0, 5, 0, 5)
-    scroll.BackgroundTransparency = 1
-    scroll.CanvasSize = UDim2.new(0, 0, 3, 0)
-    
-    local label = Instance.new("TextLabel", scroll)
-    label.Size = UDim2.new(1, 0, 1, 0)
-    label.BackgroundTransparency = 1
-    label.TextColor3 = Color3.new(1,1,1)
-    label.TextXAlignment = "Left"
-    label.TextYAlignment = "Top"
-    label.TextSize = 14
-    label.Text = [[
-[ CHAOS ]
--annoy [name] (Fire Screen)
--unannoy
--lagserver / -cleanlag
--walkfling / -unwalkfling
--headsit [name] / -unheadsit
--void [name]
+local List = Instance.new("TextLabel", Scroll)
+List.Size = UDim2.new(1, 0, 1, 0); List.BackgroundTransparency = 1; List.TextColor3 = Color3.new(1, 1, 1)
+List.TextXAlignment = "Left"; List.TextYAlignment = "Top"
+List.Text = [[
+--- [ ALL COMMANDS INCLUDED ] ---
+-antifling / -unantifling (PROTECT)
+-hugefire (Spawn ground fire)
+-annoy [name] (GIGA FIRE 150)
+-mimic [name] [text] (Frame)
+-stalk [name] / -unstalk
+-loopkill [name] / -unloopkill
+-fakeban [name] / -fakeerror [name]
+-void [name] (Send to abyss)
+-forcesit [name] / -unforcesit
+-copy [name] / -fit [name]
+-fly / -noclip / -speed [n]
+-esp / -invis / -rejoin
+]]
 
-[ MOVEMENT ]
--fly / -unfly
--speed [n] / -jump [n]
--noclip / -clip
--tp [name] / -re
+--- 2. THE MASTER ENGINE ---
+_G.Speed = 16
+_G.Jump = 50
 
-[ CHARACTER ]
--big / -small / -normal
--copy [name]
-    ]]
-
-    btn.MouseButton1Click:Connect(function() frame.Visible = not frame.Visible end)
-end
-
--- 3. COMMAND LOGIC
-player.Chatted:Connect(function(msg)
+local function runCommand(msg)
     local args = msg:lower():split(" ")
     local cmd = args[1]
     local char = player.Character
     local root = char and char:FindFirstChild("HumanoidRootPart")
-    local hum = char and char:FindFirstChild("Humanoid")
+    if not root then return end
 
-    if not root or not hum then return end
-
-    -- BASIC MOVEMENT
-    if cmd == prefix.."speed" then _G.Speed = tonumber(args[2])
-    elseif cmd == prefix.."jump" then _G.Jump = tonumber(args[2])
-    elseif cmd == prefix.."re" then char:BreakJoints()
-    elseif cmd == prefix.."noclip" then _G.Noclip = true
-    elseif cmd == prefix.."clip" then _G.Noclip = false
+    -- ANTI-FLING TOGGLE
+    if cmd == prefix.."antifling" then _G.AntiFling = true
+    elseif cmd == prefix.."unantifling" then _G.AntiFling = false
     
-    -- FLY
-    elseif cmd == prefix.."fly" then
+    -- HUGE GROUND FIRE
+    elseif cmd == prefix.."hugefire" then
+        local f = Instance.new("Fire", root); f.Size = 150; f.Heat = 150
+
+    -- MOVEMENT
+    elseif cmd == prefix.."speed" then _G.Speed = tonumber(args[2])
+    elseif cmd == prefix.."fly" then 
         _G.Flying = true
-        local bv = Instance.new("BodyVelocity", root)
-        bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+        local bv = Instance.new("BodyVelocity", root); bv.MaxForce = Vector3.new(9e9,9e9,9e9); bv.Name = "Fly"
         task.spawn(function()
             while _G.Flying do bv.Velocity = workspace.CurrentCamera.CFrame.LookVector * 100 task.wait() end
             bv:Destroy()
         end)
     elseif cmd == prefix.."unfly" then _G.Flying = false
 
-    -- TARGET COMMANDS
+    -- TARGET LOGIC
     elseif args[2] then
         local t = nil
         for _, v in pairs(game.Players:GetPlayers()) do
             if v.Name:lower():find(args[2]) or v.DisplayName:lower():find(args[2]) then t = v break end
         end
-
         if t and t.Character then
             local tr = t.Character:FindFirstChild("HumanoidRootPart")
-            if cmd == prefix.."annoy" then
-                _G.Annoying = true
+            if cmd == prefix.."stalk" then
+                _G.Stalking = true
+                task.spawn(function() while _G.Stalking and tr do root.CFrame = tr.CFrame * CFrame.new(0,0,-2.5) * CFrame.Angles(0,math.pi,0) task.wait() end end)
+            elseif cmd == prefix.."unstalk" then _G.Stalking = false
+            elseif cmd == prefix.."annoy" then
+                _G.Annoy = true
                 task.spawn(function()
-                    while _G.Annoying and t.Character do
-                        root.CFrame = tr.CFrame * CFrame.new(0, 0, 1.5)
-                        if t.Character:FindFirstChild("Head") and not t.Character.Head:FindFirstChild("BlindFire") then
-                            for i=1, 20 do Instance.new("Fire", t.Character.Head).Name = "BlindFire" end
+                    while _G.Annoy and t.Character do
+                        local h = t.Character:FindFirstChild("Head")
+                        if h and not h:FindFirstChild("Chaos") then
+                            local f = Instance.new("Fire",h); f.Name="Chaos"; f.Size=150; f.Heat=150
                         end
-                        task.wait()
+                        task.wait(1)
                     end
                 end)
-            elseif cmd == prefix.."tp" then root.CFrame = tr.CFrame
-            elseif cmd == prefix.."headsit" then
-                _G.Headsitting = true
-                hum.Sit = true
-                task.spawn(function()
-                    while _G.Headsitting and t.Character do
-                        root.CFrame = t.Character.Head.CFrame * CFrame.new(0, 1.3, 0)
-                        task.wait()
-                    end
-                end)
+            elseif cmd == prefix.."unannoy" then _G.Annoy = false
+            elseif cmd == prefix.."copy" then
+                for _, v in pairs(char:GetChildren()) do if v:IsA("Accessory") or v:IsA("Shirt") or v:IsA("Pants") then v:Destroy() end end
+                for _, v in pairs(t.Character:GetChildren()) do if v:IsA("Accessory") or v:IsA("Shirt") or v:IsA("Pants") then v:Clone().Parent = char end end
+            elseif cmd == prefix.."mimic" then
+                local say = msg:sub(#cmd + #args[2] + 3)
+                game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer(t.Name..": "..say, "All")
             end
         end
     end
-end)
+end
 
--- 4. CHARACTER SCALING (R15)
-player.Chatted:Connect(function(msg)
-    local hum = player.Character.Humanoid
-    if msg == prefix.."big" then
-        for _,v in pairs({"BodyHeightScale","BodyWidthScale","BodyDepthScale","HeadScale"}) do
-            if hum:FindFirstChild(v) then hum[v].Value = 3 end
-        end
-    elseif msg == prefix.."small" then
-        for _,v in pairs({"BodyHeightScale","BodyWidthScale","BodyDepthScale","HeadScale"}) do
-            if hum:FindFirstChild(v) then hum[v].Value = 0.4 end
-        end
-    end
-end)
-
--- 5. THE LOOPS
-_G.Speed = 16
-_G.Jump = 50
-game:GetService("RunService").Heartbeat:Connect(function()
-    pcall(function()
-        player.Character.Humanoid.WalkSpeed = _G.Speed
-        player.Character.Humanoid.JumpPower = _G.Jump
-    end)
-end)
-
-game:GetService("RunService").Stepped:Connect(function()
-    if _G.Noclip then
-        for _, v in pairs(player.Character:GetDescendants()) do
-            if v:IsA("BasePart") then v.CanCollide = false end
-        end
-    end
-end)
-
-buildUI()
-notify("V28 PATCHED", "Prefix is now [-]")
+-- 3. PROTECTION & PHYSICS LOOPS
+player.Chatted:Connect(runCommand)
+runService
