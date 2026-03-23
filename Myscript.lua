@@ -1,46 +1,68 @@
--- [[ VORTEX HUB V3.0 - STABLE MOBILE ]] --
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+-- [[ VORTEX ULTIMATE - FAIL-PROOF MOBILE ]] --
+local ScreenGui = Instance.new("ScreenGui")
+local MainButton = Instance.new("TextButton")
+local Corner = Instance.new("UICorner")
 
-local Window = Rayfield:CreateWindow({
-   Name = "VORTEX HUB",
-   LoadingTitle = "Loading Vortex...",
-   LoadingSubtitle = "by Ganesh",
-   ConfigurationSaving = {
-      Enabled = false
-   }
-})
+-- 1. STABLE UI SETUP (Will definitely show up)
+ScreenGui.Parent = game:GetService("CoreGui")
+MainButton.Parent = ScreenGui
+MainButton.Name = "VortexToggle"
+MainButton.Size = UDim2.new(0, 120, 0, 45)
+MainButton.Position = UDim2.new(0.05, 0, 0.2, 0) -- Top Left
+MainButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red = OFF
+MainButton.Text = "AUTO: OFF"
+MainButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+MainButton.Font = Enum.Font.GothamBold
+MainButton.TextSize = 14
+MainButton.Active = true
+MainButton.Draggable = true -- You can move it!
 
-local MainTab = Window:CreateTab("Main Farm", 4483362458) -- Farm Icon
+Corner.CornerRadius = UDim.new(0, 8)
+Corner.Parent = MainButton
 
-local Toggle = MainTab:CreateToggle({
-   Name = "Auto Clicker",
-   CurrentValue = false,
-   Flag = "Toggle1",
-   Callback = function(Value)
-      getgenv().AutoClick = Value
-      
-      if Value then
-          task.spawn(function()
-              -- This is the "Post Office" address you caught
-              local Remote = game:GetService("ReplicatedStorage"):WaitForChild("18ec827d-7b30-43ed-af9b-6e09098cce78"):WaitForChild("Events"):WaitForChild("")
-              
-              while getgenv().AutoClick do
-                  local args = {
-                      CFrame.new(-157.2, 218.3, 215.3),
-                      12.5,
-                      [4] = false
-                  }
-                  Remote:FireServer(unpack(args))
-                  task.wait(0.01) -- Super fast clicks
-              end
-          end)
-      end
-   end,
-})
+_G.VortexRunning = false
 
-Rayfield:Notify({
-   Title = "Vortex Loaded",
-   Content = "Toggle the switch to start clicking!",
-   Duration = 5,
-   Image = 4483362458,
-})
+-- 2. DYNAMIC REMOTE FINDER (The "Pro" Fix)
+local function findRemote()
+    -- Instead of the ID, we look for the folder that HAS the "Events" inside
+    for _, folder in pairs(game:GetService("ReplicatedStorage"):GetChildren()) do
+        if folder:FindFirstChild("Events") then
+            local remote = folder.Events:FindFirstChild("") or folder.Events:GetChildren()[1]
+            if remote then return remote end
+        end
+    end
+    return nil
+end
+
+-- 3. THE ON/OFF TOGGLE
+MainButton.MouseButton1Click:Connect(function()
+    _G.VortexRunning = not _G.VortexRunning
+    
+    if _G.VortexRunning then
+        MainButton.Text = "AUTO: ON"
+        MainButton.BackgroundColor3 = Color3.fromRGB(0, 200, 100) -- Green = ON
+        
+        task.spawn(function()
+            local target = findRemote()
+            if not target then 
+                print("Vortex: Remote not found yet. Searching...") 
+                _G.VortexRunning = false
+                MainButton.Text = "ERROR: RETRY"
+                return 
+            end
+            
+            while _G.VortexRunning do
+                local args = {
+                    CFrame.new(-157.2, 218.3, 215.3), -- Your coordinates
+                    12.5,
+                    [4] = false
+                }
+                target:FireServer(unpack(args))
+                task.wait() -- Maximum speed for Redmi 13C
+            end
+        end)
+    else
+        MainButton.Text = "AUTO: OFF"
+        MainButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    end
+end)
