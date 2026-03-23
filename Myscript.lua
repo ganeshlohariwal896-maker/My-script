@@ -1,68 +1,59 @@
--- [[ VORTEX ULTIMATE - FAIL-PROOF MOBILE ]] --
+-- [[ VORTEX TURBO V4.0 - DIRECT PATH ]] --
 local ScreenGui = Instance.new("ScreenGui")
 local MainButton = Instance.new("TextButton")
-local Corner = Instance.new("UICorner")
+local UICorner = Instance.new("UICorner")
 
--- 1. STABLE UI SETUP (Will definitely show up)
 ScreenGui.Parent = game:GetService("CoreGui")
 MainButton.Parent = ScreenGui
-MainButton.Name = "VortexToggle"
-MainButton.Size = UDim2.new(0, 120, 0, 45)
-MainButton.Position = UDim2.new(0.05, 0, 0.2, 0) -- Top Left
-MainButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red = OFF
-MainButton.Text = "AUTO: OFF"
+MainButton.Size = UDim2.new(0, 120, 0, 50)
+MainButton.Position = UDim2.new(0.1, 0, 0.1, 0)
+MainButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+MainButton.Text = "OFF"
 MainButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 MainButton.Font = Enum.Font.GothamBold
-MainButton.TextSize = 14
-MainButton.Active = true
-MainButton.Draggable = true -- You can move it!
+MainButton.Draggable = true
 
-Corner.CornerRadius = UDim.new(0, 8)
-Corner.Parent = MainButton
+UICorner.Parent = MainButton
 
-_G.VortexRunning = false
+_G.Clicking = false
 
--- 2. DYNAMIC REMOTE FINDER (The "Pro" Fix)
-local function findRemote()
-    -- Instead of the ID, we look for the folder that HAS the "Events" inside
-    for _, folder in pairs(game:GetService("ReplicatedStorage"):GetChildren()) do
-        if folder:FindFirstChild("Events") then
-            local remote = folder.Events:FindFirstChild("") or folder.Events:GetChildren()[1]
-            if remote then return remote end
-        end
-    end
-    return nil
-end
-
--- 3. THE ON/OFF TOGGLE
 MainButton.MouseButton1Click:Connect(function()
-    _G.VortexRunning = not _G.VortexRunning
+    _G.Clicking = not _G.Clicking
     
-    if _G.VortexRunning then
-        MainButton.Text = "AUTO: ON"
-        MainButton.BackgroundColor3 = Color3.fromRGB(0, 200, 100) -- Green = ON
+    if _G.Clicking then
+        MainButton.Text = "CLICKING..."
+        MainButton.BackgroundColor3 = Color3.fromRGB(50, 255, 50)
         
         task.spawn(function()
-            local target = findRemote()
-            if not target then 
-                print("Vortex: Remote not found yet. Searching...") 
-                _G.VortexRunning = false
-                MainButton.Text = "ERROR: RETRY"
-                return 
+            -- DIRECT PATH TRIPLE-CHECKED
+            local rs = game:GetService("ReplicatedStorage")
+            local folder = rs:FindFirstChild("18ec827d-7b30-43ed-af9b-6e09098cce78")
+            
+            if not folder then
+                warn("Vortex Error: Remote Folder Missing!")
+                MainButton.Text = "RE-SPY NEEDED"
+                _G.Clicking = false
+                return
             end
             
-            while _G.VortexRunning do
+            local remote = folder.Events:FindFirstChild("")
+            
+            while _G.Clicking do
+                -- Sending exactly what SpyHub caught
                 local args = {
-                    CFrame.new(-157.2, 218.3, 215.3), -- Your coordinates
+                    CFrame.new(-157.2, 218.3, 215.3),
                     12.5,
                     [4] = false
                 }
-                target:FireServer(unpack(args))
-                task.wait() -- Maximum speed for Redmi 13C
+                
+                remote:FireServer(unpack(args))
+                
+                -- This is the fastest "MS" speed (approx 0.001s in logic)
+                task.wait() 
             end
         end)
     else
-        MainButton.Text = "AUTO: OFF"
-        MainButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+        MainButton.Text = "OFF"
+        MainButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
     end
 end)
