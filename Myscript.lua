@@ -1,25 +1,37 @@
--- [[ VORTEX TURBO CLICKER - FIXED ID ]] --
-getgenv().AutoClick = true
+-- [[ VORTEX HUB V2.0 - PRO MOBILE UI ]] --
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bloodball/-backups/main/mavo"))()
 
-task.spawn(function()
-    print("Vortex: Starting Turbo Clicker...")
+-- Create the Window
+local Window = Library:CreateWindow("VORTEX HUB")
+
+-- Create the Tab
+local MainTab = Window:CreateTab("Main Farm")
+
+-- 1. THE ON/OFF TOGGLE
+MainTab:CreateToggle("Start Auto Clicker", function(state)
+    getgenv().AutoClick = state
     
-    -- This is the secret path you found in SimpleSpy
-    local targetRemote = game:GetService("ReplicatedStorage"):WaitForChild("18ec827d-7b30-43ed-af9b-6e09098cce78"):WaitForChild("Events"):WaitForChild("")
-
-    while getgenv().AutoClick do
-        -- These are the exact "Args" you caught
-        local args = {
-            CFrame.new(-157.205, 218.350, 215.344), -- Your location
-            12.5, -- Speed/Power
-            [4] = false
-        }
-        
-        -- Sending the click to the server as fast as possible
-        targetRemote:FireServer(unpack(args))
-        
-        -- 0.001 is too fast for Roblox servers, so we use task.wait()
-        -- This is the fastest "Safe" speed (about 30-60 clicks per second)
-        task.wait() 
+    if state then
+        task.spawn(function()
+            -- Your secret Remote Path
+            local targetRemote = game:GetService("ReplicatedStorage"):WaitForChild("18ec827d-7b30-43ed-af9b-6e09098cce78"):WaitForChild("Events"):WaitForChild("")
+            
+            while getgenv().AutoClick do
+                local args = {
+                    CFrame.new(-157.205, 218.350, 215.344),
+                    12.5,
+                    [4] = false
+                }
+                targetRemote:FireServer(unpack(args))
+                
+                -- This uses the Speed we set (default 0.01)
+                task.wait(getgenv().ClickSpeed or 0.01) 
+            end
+        end)
     end
+end)
+
+-- 2. THE SPEED SLIDER (Pro Feature)
+MainTab:CreateSlider("Click Speed", 0.001, 1, function(value)
+    getgenv().ClickSpeed = value
 end)
