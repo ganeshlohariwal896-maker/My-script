@@ -1,69 +1,68 @@
--- [[ VORTEX UNIVERSAL V8.0 - ZERO-ID MODE ]] --
+-- [[ VORTEX GHOST V9.0 - DYNAMIC POS ]] --
 local ScreenGui = Instance.new("ScreenGui")
 local MainButton = Instance.new("TextButton")
 local UICorner = Instance.new("UICorner")
 
 ScreenGui.Parent = game:GetService("CoreGui")
 MainButton.Parent = ScreenGui
-MainButton.Size = UDim2.new(0, 140, 0, 50)
+MainButton.Size = UDim2.new(0, 130, 0, 50)
 MainButton.Position = UDim2.new(0.1, 0, 0.5, 0)
-MainButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-MainButton.Text = "READY TO SCAN"
+MainButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+MainButton.Text = "START VORTEX"
 MainButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 MainButton.Font = Enum.Font.GothamBold
 MainButton.Draggable = true
 UICorner.Parent = MainButton
 
-_G.VortexActive = false
-
--- This function "Hunts" for the correct Remote automatically
-local function findActiveRemote()
-    -- Look in ReplicatedStorage for any RemoteEvent with "Click", "Tap", or "Add"
-    for _, v in pairs(game:GetService("ReplicatedStorage"):GetDescendants()) do
-        if v:IsA("RemoteEvent") and (v.Name:lower():find("click") or v.Name:lower():find("tap") or v.Name:lower():find("add")) then
-            return v
-        end
-    end
-    -- If no name matches, look for any folder with "Events" in it
-    for _, folder in pairs(game:GetService("ReplicatedStorage"):GetChildren()) do
-        if folder:FindFirstChild("Events") then
-            return folder.Events:GetChildren()[1]
-        end
-    end
-end
+_G.VortexRunning = false
 
 MainButton.MouseButton1Click:Connect(function()
-    _G.VortexActive = not _G.VortexActive
+    _G.VortexRunning = not _G.VortexRunning
     
-    if _G.VortexActive then
-        local target = findActiveRemote()
-        
-        if not target then
-            MainButton.Text = "NO REMOTE FOUND"
-            _G.VortexActive = false
-            task.wait(2)
-            MainButton.Text = "READY TO SCAN"
-            return
-        end
-
-        MainButton.Text = "FARMING: " .. target.Name
-        MainButton.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+    if _G.VortexRunning then
+        MainButton.Text = "RUNNING..."
+        MainButton.BackgroundColor3 = Color3.fromRGB(0, 255, 150)
         
         task.spawn(function()
-            while _G.VortexActive do
-                -- Use your CURRENT position (safer)
-                local pos = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
+            -- We search for the "Events" folder directly to bypass the changing ID
+            local storage = game:GetService("ReplicatedStorage")
+            local remote = nil
+            
+            -- This loop finds the folder even if the ID changes
+            for _, v in pairs(storage:GetChildren()) do
+                if v:FindFirstChild("Events") then
+                    remote = v.Events:FindFirstChild("") or v.Events:GetChildren()[1]
+                    break
+                end
+            end
+
+            if not remote then
+                MainButton.Text = "NOT FOUND"
+                return
+            end
+
+            while _G.VortexRunning do
+                -- GET CURRENT CHARACTER POSITION (The Anti-Kick Secret)
+                local char = game.Players.LocalPlayer.Character
+                if char and char:FindFirstChild("HumanoidRootPart") then
+                    local currentPos = char.HumanoidRootPart.CFrame
+                    
+                    -- Exactly what SpyHub saw, but with YOUR real position
+                    local args = {
+                        currentPos,
+                        12.5,
+                        [4] = false
+                    }
+                    
+                    remote:FireServer(unpack(args))
+                end
                 
-                -- Send the "Click" signal
-                target:FireServer(pos, 12.5, false)
-                
-                -- SAFE SPEED: 0.1s (10 clicks/sec) 
-                -- Start slow to see if you get kicked. If safe, we go faster later.
-                task.wait(0.1) 
+                -- SPEED: 0.03 is the "Pro" limit. Fast but stable.
+                task.wait(0.03) 
             end
         end)
     else
-        MainButton.Text = "READY TO SCAN"
-        MainButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+        MainButton.Text = "START VORTEX"
+        MainButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
     end
 end)
