@@ -1,13 +1,13 @@
--- [[ VORTEX GHOST V9.0 - DYNAMIC POS ]] --
+-- [[ VORTEX PRECISION V10.0 - MULTI-ARG ]] --
 local ScreenGui = Instance.new("ScreenGui")
 local MainButton = Instance.new("TextButton")
 local UICorner = Instance.new("UICorner")
 
 ScreenGui.Parent = game:GetService("CoreGui")
 MainButton.Parent = ScreenGui
-MainButton.Size = UDim2.new(0, 130, 0, 50)
+MainButton.Size = UDim2.new(0, 140, 0, 50)
 MainButton.Position = UDim2.new(0.1, 0, 0.5, 0)
-MainButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+MainButton.BackgroundColor3 = Color3.fromRGB(60, 0, 200)
 MainButton.Text = "START VORTEX"
 MainButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 MainButton.Font = Enum.Font.GothamBold
@@ -20,15 +20,13 @@ MainButton.MouseButton1Click:Connect(function()
     _G.VortexRunning = not _G.VortexRunning
     
     if _G.VortexRunning then
-        MainButton.Text = "RUNNING..."
-        MainButton.BackgroundColor3 = Color3.fromRGB(0, 255, 150)
+        MainButton.Text = "CLICKING..."
+        MainButton.BackgroundColor3 = Color3.fromRGB(0, 255, 100)
         
         task.spawn(function()
-            -- We search for the "Events" folder directly to bypass the changing ID
+            -- Find the Remote again
             local storage = game:GetService("ReplicatedStorage")
             local remote = nil
-            
-            -- This loop finds the folder even if the ID changes
             for _, v in pairs(storage:GetChildren()) do
                 if v:FindFirstChild("Events") then
                     remote = v.Events:FindFirstChild("") or v.Events:GetChildren()[1]
@@ -36,33 +34,26 @@ MainButton.MouseButton1Click:Connect(function()
                 end
             end
 
-            if not remote then
-                MainButton.Text = "NOT FOUND"
-                return
-            end
-
             while _G.VortexRunning do
-                -- GET CURRENT CHARACTER POSITION (The Anti-Kick Secret)
-                local char = game.Players.LocalPlayer.Character
-                if char and char:FindFirstChild("HumanoidRootPart") then
-                    local currentPos = char.HumanoidRootPart.CFrame
+                if remote then
+                    local pPos = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
                     
-                    -- Exactly what SpyHub saw, but with YOUR real position
-                    local args = {
-                        currentPos,
-                        12.5,
-                        [4] = false
-                    }
+                    -- TRY 1: The SpyHub way (with exact decimals)
+                    remote:FireServer(pPos, 12.499996185302734, [4] = false)
                     
-                    remote:FireServer(unpack(args))
+                    -- TRY 2: The "Simple" way (Just Position)
+                    remote:FireServer(pPos)
+                    
+                    -- TRY 3: The "Empty" way (Some games just need the trigger)
+                    remote:FireServer()
                 end
                 
-                -- SPEED: 0.03 is the "Pro" limit. Fast but stable.
-                task.wait(0.03) 
+                -- SPEED: 0.05 (Safe and Fast)
+                task.wait(0.05) 
             end
         end)
     else
         MainButton.Text = "START VORTEX"
-        MainButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        MainButton.BackgroundColor3 = Color3.fromRGB(60, 0, 200)
     end
 end)
