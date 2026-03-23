@@ -1,37 +1,46 @@
--- [[ VORTEX HUB V2.0 - PRO MOBILE UI ]] --
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bloodball/-backups/main/mavo"))()
+-- [[ VORTEX HUB V3.0 - STABLE MOBILE ]] --
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
--- Create the Window
-local Window = Library:CreateWindow("VORTEX HUB")
+local Window = Rayfield:CreateWindow({
+   Name = "VORTEX HUB",
+   LoadingTitle = "Loading Vortex...",
+   LoadingSubtitle = "by Ganesh",
+   ConfigurationSaving = {
+      Enabled = false
+   }
+})
 
--- Create the Tab
-local MainTab = Window:CreateTab("Main Farm")
+local MainTab = Window:CreateTab("Main Farm", 4483362458) -- Farm Icon
 
--- 1. THE ON/OFF TOGGLE
-MainTab:CreateToggle("Start Auto Clicker", function(state)
-    getgenv().AutoClick = state
-    
-    if state then
-        task.spawn(function()
-            -- Your secret Remote Path
-            local targetRemote = game:GetService("ReplicatedStorage"):WaitForChild("18ec827d-7b30-43ed-af9b-6e09098cce78"):WaitForChild("Events"):WaitForChild("")
-            
-            while getgenv().AutoClick do
-                local args = {
-                    CFrame.new(-157.205, 218.350, 215.344),
-                    12.5,
-                    [4] = false
-                }
-                targetRemote:FireServer(unpack(args))
-                
-                -- This uses the Speed we set (default 0.01)
-                task.wait(getgenv().ClickSpeed or 0.01) 
-            end
-        end)
-    end
-end)
+local Toggle = MainTab:CreateToggle({
+   Name = "Auto Clicker",
+   CurrentValue = false,
+   Flag = "Toggle1",
+   Callback = function(Value)
+      getgenv().AutoClick = Value
+      
+      if Value then
+          task.spawn(function()
+              -- This is the "Post Office" address you caught
+              local Remote = game:GetService("ReplicatedStorage"):WaitForChild("18ec827d-7b30-43ed-af9b-6e09098cce78"):WaitForChild("Events"):WaitForChild("")
+              
+              while getgenv().AutoClick do
+                  local args = {
+                      CFrame.new(-157.2, 218.3, 215.3),
+                      12.5,
+                      [4] = false
+                  }
+                  Remote:FireServer(unpack(args))
+                  task.wait(0.01) -- Super fast clicks
+              end
+          end)
+      end
+   end,
+})
 
--- 2. THE SPEED SLIDER (Pro Feature)
-MainTab:CreateSlider("Click Speed", 0.001, 1, function(value)
-    getgenv().ClickSpeed = value
-end)
+Rayfield:Notify({
+   Title = "Vortex Loaded",
+   Content = "Toggle the switch to start clicking!",
+   Duration = 5,
+   Image = 4483362458,
+})
